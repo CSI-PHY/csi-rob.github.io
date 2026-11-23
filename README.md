@@ -1,6 +1,6 @@
 # CSI Robot Research Workspace
 
-A password-encrypted research task board based on the CSI World workspace. Eight stages cover benchmark selection, model baselines, three harness toy experiments, optional PEAR LoRA training, held-out evaluation, and reporting. The initial vault contains 57 actionable tasks, each with a completion criterion. All experimental tasks start uncompleted; there are no fabricated performance results.
+A password-encrypted research task board based on the CSI World workspace. Eight stages cover benchmark selection, model baselines, three harness toy experiments, optional PEAR LoRA training, held-out evaluation, and reporting. Since 2026-11-23 a short three-task proof of concept comes first in the sidebar (10 tasks: native test, minimal tool library, tool-calling test); the original eight stages follow unchanged, folded under "完整计划". The vault contains 67 actionable tasks (10 proof-of-concept, 57 original), each with a completion criterion. All experimental tasks start uncompleted; there are no fabricated performance results.
 
 ## Open and collaborate
 
@@ -10,7 +10,7 @@ Unsaved-to-GitHub edits are local to that browser. Publishing checks the remote 
 
 ## Encryption and files
 
-Research content and attachments in `data/vault.json` are AES-256-GCM encrypted with PBKDF2-SHA256 (310,000 iterations, fresh random salt and IV). Source code contains no plaintext password or embedded GitHub credentials. Password strength determines offline resistance; this is an encrypted static workspace, not server authentication. Never paste API keys into notes. Single attachments are limited to 15 MB and the total to 35 MB; use links for large videos.
+Research content and attachments in `data/vault.json` are AES-256-GCM encrypted with PBKDF2-SHA256 (310,000 iterations, fresh random salt and IV). Source code contains no plaintext password or embedded GitHub credentials. Ticking "在这台设备上免密码登录" at sign-in keeps the derived, non-extractable AES key (never the password) in that browser's IndexedDB so the workspace opens without the password there; "锁定工作区" removes it, and anyone who can use that browser profile can open the workspace while it is set. Password strength determines offline resistance; this is an encrypted static workspace, not server authentication. Never paste API keys into notes. Single attachments are limited to 15 MB and the total to 35 MB; use links for large videos.
 
 ## Host
 
