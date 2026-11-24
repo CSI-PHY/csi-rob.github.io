@@ -23,3 +23,8 @@
 .task-item{scroll-margin-top:16px}
 .plan ul{padding-left:20px}
 .plan li{margin:6px 0}
+.point-no{display:inline-block;min-width:34px;color:var(--green)}
+.media{margin:10px 0 4px}
+.media video{display:block;width:100%;max-width:900px;border:1px solid var(--line);border-radius:8px;background:#000}
+.media figcaption{font-size:13px;color:var(--muted);margin-top:6px}
+.plan-media-title{font-weight:600;font-size:14px;margin:14px 0 0}
