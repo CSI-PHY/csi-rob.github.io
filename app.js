@@ -49,7 +49,7 @@ const OUTCOMES={reached:'到位',stopped:'中途停下（有东西挡住，或�
 const END_REASONS={env:'仿真结束（任务完成或原生动作用完）',parse:'回答里没有可用的动作',budget:'token 预算用完'};
 const episodeCache=new Map();
 async function loadEpisode(entry){if(!episodeCache.has(entry.id)){const r=await fetch(entry.file,{cache:'no-store'});if(!r.ok)throw Error('结果文件无法读取（'+r.status+'）');episodeCache.set(entry.id,await open(await r.json()));}return episodeCache.get(entry.id);}
-function actionText(a){if(!a)return '（没有解析出动作）';const arm=Object.entries(a.arm).filter(([,v])=>v).map(([k,v])=>k+' '+(v>0?'+':'')+v).join('，')||'不动',w=a.gripper.width;return '机械臂 '+arm+'；夹爪'+(w===0?'不变':w>0?'张开':'合拢');}
+function actionText(a){if(!a)return '（没有解析出动作）';if(!a.arm)return a.function?a.function+'('+Object.entries(a.args||{}).map(([k,v])=>k+'='+v).join(', ')+')':'（回答里没有可用的调用）';const arm=Object.entries(a.arm).filter(([,v])=>v).map(([k,v])=>k+' '+(v>0?'+':'')+v).join('，')||'不动',w=a.gripper.width;return '机械臂 '+arm+'；夹爪'+(w===0?'不变':w>0?'张开':'合拢');}
 function badge(entry){return el('span',entry.result,'badge '+(entry.success?'ok':'fail'));}
 function episodeVideo(entry){const f=state.stages.flatMap(s=>s.files).find(f=>f.id===entry.video);return f?mediaNode(f):null;}
 function episodeList(stageId){const list=(state.episodes||[]).filter(e=>e.stage===stageId);if(!list.length)return null;const box=el('div',undefined,'episodes');box.append(el('p','已有的结果','plan-media-title'));
@@ -72,7 +72,7 @@ async function renderEpisode(root){const entry=(state.episodes||[]).find(e=>e.id
  ep.turns.forEach(x=>{const card=el('section',undefined,'turn-card');card.id='turn-'+x.turn;card.append(el('h3','第 '+x.turn+' 步'),el('p',actionText(x.action)+' → '+(OUTCOMES[x.outcome]||x.outcome||''),'muted'),el('h4','输入（这一步新增）'),el('pre',x.input_text));
   const frames=el('div',undefined,'frames');x.frames.forEach(([camera,data])=>{const fig=el('figure'),img=el('img');img.loading='lazy';img.src='data:image/jpeg;base64,'+data;img.alt=camera;fig.append(img,el('figcaption','['+camera+'] '+(camera==='wrist'?'夹爪相机':'正面相机')));frames.append(fig);});card.append(frames,el('h4','输出'));
   const think=el('details');think.append(el('summary','思考过程（这一步共生成 '+(x.completion_tokens||0).toLocaleString()+' 个 token，用时 '+x.model_seconds+' 秒）'),el('pre',(x.reasoning||'').trim()));card.append(think,el('pre',(x.answer||'').trim()));if(x.error)card.append(el('p',x.error,'badge fail'));
-  if(x.executed!=null)card.append(el('h4','执行'),table(['项','内容'],[['解析出的动作',JSON.stringify(x.action)],['执行结果',(OUTCOMES[x.outcome]||x.outcome)+'（'+x.outcome+'）'],['原生动作数',x.executed+'（仿真用时 '+x.sim_seconds+' 秒）'],['执行后的状态',JSON.stringify(x.state_after)]]));panel.append(card);});}
+  if(x.executed!=null)card.append(el('h4','执行'),table(['项','内容'],[[x.action&&!x.action.arm?'函数调用':'解析出的动作',JSON.stringify(x.action)],...(x.result?[['函数返回',JSON.stringify(x.result)]]:[]),['执行结果',(OUTCOMES[x.outcome]||x.outcome)+(OUTCOMES[x.outcome]?'（'+x.outcome+'）':'')],['原生动作数',x.executed+'（仿真用时 '+x.sim_seconds+' 秒）'],['执行后的状态',JSON.stringify(x.state_after)]]));panel.append(card);});}
 function goTask(id){const i=state.stages.findIndex(s=>s.tasks.some(t=>t.id===id));if(i<0)return;index=i;view='stage';render();document.getElementById('task-'+id)?.scrollIntoView({block:'center'});}
 function bullets(items){const ul=el('ul');items.forEach(x=>ul.append(el('li',x)));return ul;}
 function renderPlan(root){const p=state.plan,panel=el('div',undefined,'panel plan'),h=el('div',undefined,'panel-title');h.append(el('h2',p.title));
