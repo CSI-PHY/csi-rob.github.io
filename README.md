@@ -1,6 +1,6 @@
 # CSI Robot Research Workspace
 
-A password-encrypted research task board based on the CSI World workspace. Eight stages cover benchmark selection, model baselines, three harness toy experiments, optional PEAR LoRA training, held-out evaluation, and reporting. Since 2026-11-23 a short three-task proof of concept comes first in the sidebar (10 tasks: native test, minimal tool library, tool-calling test); the original eight stages follow unchanged, folded under "完整计划". The vault contains 67 actionable tasks (10 proof-of-concept, 57 original), each with a completion criterion. All experimental tasks start uncompleted; there are no fabricated performance results.
+A password-encrypted research task board based on the CSI World workspace. Eight stages cover benchmark selection, model baselines, three harness toy experiments, optional PEAR LoRA training, held-out evaluation, and reporting. Since 2026-11-23 a proof of concept comes first in the sidebar: a plan page ("详细计划") and six steps with 19 tasks (PEAR and Opus native baselines, a harness written by the large model, harness iteration for PEAR on 3 tasks, then 10 tasks). The plan page lists, for every point of the plan, the tasks that carry it out, and each task links back to its point. The original eight stages follow unchanged, folded under "完整计划". The vault contains 76 actionable tasks (19 proof-of-concept, 57 original), each with a completion criterion. All experimental tasks start uncompleted; there are no fabricated performance results.
 
 ## Open and collaborate
 
