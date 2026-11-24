@@ -28,3 +28,15 @@
 .media video{display:block;width:100%;max-width:900px;border:1px solid var(--line);border-radius:8px;background:#000}
 .media figcaption{font-size:13px;color:var(--muted);margin-top:6px}
 .plan-media-title{font-weight:600;font-size:14px;margin:14px 0 0}
+.badge{display:inline-block;font-size:12px;font-weight:600;padding:1px 9px;border-radius:10px;vertical-align:middle}
+.badge.ok{background:#e6f4ea;color:#1c6b3a}.badge.fail{background:#fbeaea;color:#a12b2b}
+.episode-row{border-top:1px solid var(--line);margin-top:10px;padding-top:6px}
+.episode-row .plan-link{margin-top:8px}
+.episode pre,.turn-card pre{background:#f7f9f8;border:1px solid var(--line);border-radius:8px;padding:10px 12px;white-space:pre-wrap;word-break:break-word;font:13px/1.5 ui-monospace,Menlo,monospace;margin:6px 0}
+.turn-card{border:1px solid var(--line);border-radius:10px;padding:8px 18px 14px;margin:14px 0;scroll-margin-top:12px}
+.turn-card h4{margin:14px 0 4px;font-size:14px}
+.frames{display:flex;gap:10px;flex-wrap:wrap}.frames figure{margin:0;flex:1 1 280px;max-width:380px}
+.frames img{width:100%;display:block;border:1px solid var(--line);border-radius:6px}
+.frames figcaption{font-size:12px;color:var(--muted)}
+.episode details>summary{cursor:pointer;color:var(--green);margin:6px 0}
+.episode td .task-chip{width:auto;display:inline-block;margin:0}
