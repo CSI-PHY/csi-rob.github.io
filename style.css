@@ -37,6 +37,8 @@
 .cell-ok{color:#1c6b3a;background:#f1f8f3}.cell-fail{color:#a12b2b;background:#fcf3f3}.cell-part{color:#8a5a00;background:#fdf8ec}.cell-none{color:var(--muted)}
 .doc img{display:block;width:100%;max-width:512px;border:1px solid var(--line);border-radius:8px}
 .doc h4{margin:18px 0 4px;font-size:15px}
+.paper-actions{display:flex;gap:8px;margin:6px 0 10px}.paper-actions a{text-decoration:none;display:inline-block}
+.paper-frame{display:block;width:100%;height:88vh;border:1px solid var(--line);border-radius:8px;background:#fff}
 .doc pre{background:#f7f9f8;border:1px solid var(--line);border-radius:8px;padding:10px 12px;white-space:pre-wrap;word-break:break-word;font:13px/1.5 ui-monospace,Menlo,monospace;margin:6px 0}
 .episode-row .plan-link{margin-top:8px}
 .episode pre,.turn-card pre{background:#f7f9f8;border:1px solid var(--line);border-radius:8px;padding:10px 12px;white-space:pre-wrap;word-break:break-word;font:13px/1.5 ui-monospace,Menlo,monospace;margin:6px 0}
