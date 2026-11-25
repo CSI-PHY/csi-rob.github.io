@@ -11,7 +11,7 @@ const legacyFields=[
  [field('matrix','冻结对照设置'),field('budget','正式测试与累计成本'),field('results','实际泛化结果与区间'),field('analysis','泄漏 / 额外能力审计')],
  [field('report','报告范围与主张'),field('reproduce','复现包与链接'),field('results','实际产出'),field('analysis','下一轮决定')]
 ];
-let state,key,token='',index=0,view='stage',episodeId=null,fullOpen=false,timer,pending=Promise.resolve(),remoteSha=null,dirty=false,revision=0;
+let state,key,token='',index=0,view='stage',episodeId=null,docId=null,fullOpen=false,timer,pending=Promise.resolve(),remoteSha=null,dirty=false,revision=0;
 const b64=a=>{const bytes=new Uint8Array(a);let text='';for(let i=0;i<bytes.length;i+=32768)text+=String.fromCharCode(...bytes.subarray(i,i+32768));return btoa(text);}, un64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
 async function derive(password,salt){const k=await crypto.subtle.importKey('raw',enc.encode(password),'PBKDF2',false,['deriveKey']);return crypto.subtle.deriveKey({name:'PBKDF2',salt:un64(salt),iterations:310000,hash:'SHA-256'},k,{name:'AES-GCM',length:256},false,['encrypt','decrypt']);}
 async function seal(obj){const iv=crypto.getRandomValues(new Uint8Array(12));return {version:1,salt:window.vaultSalt,iv:b64(iv),ciphertext:b64(await crypto.subtle.encrypt({name:'AES-GCM',iv},key,enc.encode(JSON.stringify(obj))))};}
@@ -30,10 +30,11 @@ function render(){const stages=state.stages;if(index>=stages.length)index=0;cons
 const navButton=([s,i])=>{const b=el('button');b.append(el('span','',`dot ${s.tasks.length&&s.tasks.every(x=>x.done)?'done':''}`),document.createTextNode(s.title));b.className=view==='stage'&&i===index?'active':'';b.onclick=()=>{index=i;view='stage';render();};return b;};
 const planButton=()=>{const b=el('button');b.append(el('span','','dot plan'),document.createTextNode('详细计划'));b.className=view==='plan'?'active':'';b.onclick=()=>{view='plan';render();};return b;};if(!state.plan)view='stage';
 const all=stages.map((s,i)=>[s,i]),poc=all.filter(([s])=>s.group==='poc'),full=all.filter(([s])=>s.group!=='poc');
-if(poc.length){nav.append(el('div','概念验证','nav-group'),...(state.plan?[planButton()]:[]),...poc.map(navButton));const more=el('details',undefined,'nav-more'),list=el('div',undefined,'nav-list');more.open=fullOpen||(view==='stage'&&full.some(([,i])=>i===index));more.addEventListener('toggle',()=>{fullOpen=more.open;});list.append(...full.map(navButton));more.append(el('summary','完整计划（概念验证之后）'),list);nav.append(more);}else nav.append(...full.map(navButton));
+const docButton=d=>{const b=el('button');b.append(el('span','','dot plan'),document.createTextNode(d.nav));b.className=view==='doc'&&docId===d.id?'active':'';b.onclick=()=>{view='doc';docId=d.id;render();scrollTo(0,0);};return b;};
+if(poc.length){nav.append(el('div','概念验证','nav-group'),...(state.plan?[planButton()]:[]),...(state.docs||[]).map(docButton),...poc.map(navButton));const more=el('details',undefined,'nav-more'),list=el('div',undefined,'nav-list');more.open=fullOpen||(view==='stage'&&full.some(([,i])=>i===index));more.addEventListener('toggle',()=>{fullOpen=more.open;});list.append(...full.map(navButton));more.append(el('summary','完整计划（概念验证之后）'),list);nav.append(more);}else nav.append(...full.map(navButton));
 const tally=list=>list.reduce((n,[s])=>n+s.tasks.filter(t=>t.done).length,0)+' / '+list.reduce((n,[s])=>n+s.tasks.length,0);
-$('#overview').replaceChildren();const intro=el('div',undefined,'intro');intro.append(el('h1','机器人 Harness 实验工作台'),el('p','先做概念验证：PEAR 与 Opus 的原生成绩 → 大模型写 harness → 针对 PEAR 改 harness → 扩到 10 个任务。完整计划排在其后。'));$('#overview').append(intro);const summary=el('div',undefined,'summary');[...(poc.length?[[tally(poc),'概念验证任务'],[tally(full),'完整计划任务']]:[[tally(full),'任务已完成']]),[stages.reduce((n,s)=>n+s.files.length,0),'证据附件']].forEach(([a,b])=>{const m=el('div',undefined,'metric');m.append(el('strong',a),el('span',b));summary.append(m);});$('#overview').append(summary);renderOverview();
-const root=$('#detail');root.replaceChildren();if(view==='episode'){renderEpisode(root);return;}if(view==='plan'){renderPlan(root);return;}
+$('#overview').replaceChildren();const intro=el('div',undefined,'intro');intro.append(el('h1','机器人 Harness 实验工作台'),el('p','先做概念验证：PEAR 与 Opus 的原生成绩 → 大模型写 harness → 针对 PEAR 改 harness → 扩到 10 个任务。完整计划排在其后。'));$('#overview').append(intro);const summary=el('div',undefined,'summary');[...(poc.length?[[tally(poc),'概念验证任务'],[tally(full),'完整计划任务']]:[[tally(full),'任务已完成']]),[(state.episodes||[]).length,'逐局记录']].forEach(([a,b])=>{const m=el('div',undefined,'metric');m.append(el('strong',a),el('span',b));summary.append(m);});$('#overview').append(summary);renderOverview();
+const root=$('#detail');root.replaceChildren();if(view==='episode'){renderEpisode(root);return;}if(view==='plan'){renderPlan(root);return;}if(view==='doc'){renderDoc(root);return;}
 const s=stages[index],panel=el('div',undefined,'panel');const h=el('div',undefined,'panel-title');h.append(el('h2',s.title));panel.append(h,el('p',s.goal,'muted'));if(s.planStep&&state.plan){const link=el('button','对应详细计划：第 '+s.planStep+' 步','plan-link');link.onclick=()=>{view='plan';render();document.getElementById('plan-step-'+s.planStep)?.scrollIntoView({block:'start'});};panel.append(link);}if(s.guidance)panel.append(el('p','验收建议：'+s.guidance,'guidance'));
 renderTasks(panel,s);if(s.id==='S0'){const head=el('div',undefined,'panel-title');head.append(el('h3','Benchmark 清单'));const add=el('button','添加 Benchmark');add.onclick=()=>{state.benchmarks.push({name:'',url:'',task:'',gt:'',metric:''});mark();render();};head.append(add);panel.append(head);state.benchmarks.forEach((b,i)=>{const row=el('div',undefined,'record');const g=el('div',undefined,'grid');[['name','名称'],['url','官方链接'],['task','输入 / 输出与任务范围'],['gt','GT 来源与获取方式'],['metric','指标与样本数']].forEach(([k,l])=>control(g,l,b[k],'text',v=>{b[k]=v;mark();}));row.append(g);const rm=el('button','删除此 Benchmark');rm.onclick=()=>{if(confirm('删除该 Benchmark 记录？')){state.benchmarks.splice(i,1);mark();render();}};row.append(rm);panel.append(row);});}
 {const results=episodeList(s.id);if(results)panel.append(results);}
@@ -51,10 +52,16 @@ const episodeCache=new Map();
 async function loadEpisode(entry){if(!episodeCache.has(entry.id)){const r=await fetch(entry.file,{cache:'no-store'});if(!r.ok)throw Error('结果文件无法读取（'+r.status+'）');episodeCache.set(entry.id,await open(await r.json()));}return episodeCache.get(entry.id);}
 function actionText(a){if(!a)return '（没有解析出动作）';if(!a.arm)return a.function?a.function+'('+Object.entries(a.args||{}).map(([k,v])=>k+'='+v).join(', ')+')':'（回答里没有可用的调用）';const arm=Object.entries(a.arm).filter(([,v])=>v).map(([k,v])=>k+' '+(v>0?'+':'')+v).join('，')||'不动',w=a.gripper.width;return '机械臂 '+arm+'；夹爪'+(w===0?'不变':w>0?'张开':'合拢');}
 function badge(entry){return el('span',entry.result,'badge '+(entry.success?'ok':'fail'));}
-function episodeVideo(entry){const f=state.stages.flatMap(s=>s.files).find(f=>f.id===entry.video);return f?mediaNode(f):null;}
-function episodeList(stageId){const list=(state.episodes||[]).filter(e=>e.stage===stageId);if(!list.length)return null;const box=el('div',undefined,'episodes');box.append(el('p','已有的结果','plan-media-title'));
- list.forEach(entry=>{const row=el('div',undefined,'episode-row'),head=el('p');head.append(el('strong',entry.title+' '),badge(entry),document.createTextNode(' '+entry.line));row.append(head);const video=episodeVideo(entry);if(video)row.append(video);
-  const b=el('button','查看每一步的输入和输出','plan-link');b.onclick=()=>{view='episode';episodeId=entry.id;render();scrollTo(0,0);};row.append(b);box.append(row);});return box;}
+const videoUrls=new Map();
+function episodeVideo(entry){if(!entry.videoFile){const f=state.stages.flatMap(s=>s.files).find(f=>f.id===entry.video);return f?mediaNode(f):null;}
+ const box=el('div',undefined,'media lazy'),b=el('button','▶ 看视频','plan-link');
+ const show=async()=>{b.disabled=true;b.textContent='正在读取视频…';try{if(!videoUrls.has(entry.id)){const r=await fetch(entry.videoFile,{cache:'no-store'});if(!r.ok)throw Error(r.status);const v=await open(await r.json());videoUrls.set(entry.id,URL.createObjectURL(new Blob([un64(v.data)],{type:v.type})));}const video=el('video');video.controls=true;video.src=videoUrls.get(entry.id);box.className='media';box.replaceChildren(video);}catch(e){b.disabled=false;b.textContent='视频读取失败，点这里重试';}};
+ b.onclick=show;box.append(b);if(videoUrls.has(entry.id))show();return box;}
+const openLists=new Set();
+function episodeList(stageId){const list=(state.episodes||[]).filter(e=>e.stage===stageId);if(!list.length)return null;const box=el('details',undefined,'episodes');box.open=openLists.has(stageId);box.addEventListener('toggle',()=>{box.open?openLists.add(stageId):openLists.delete(stageId);});
+ box.append(el('summary','逐局记录：'+list.length+' 局，成功 '+list.filter(e=>e.success).length+' 局（每局有视频和每一步的输入输出）'));
+ list.forEach(entry=>{const row=el('div',undefined,'episode-row'),head=el('p');head.append(el('strong',entry.title+' '),badge(entry),document.createTextNode(' '+entry.line));
+  const b=el('button','每一步的输入和输出','plan-link');b.onclick=()=>{view='episode';episodeId=entry.id;render();scrollTo(0,0);};row.append(head,b);const video=episodeVideo(entry);if(video)row.append(video);box.append(row);});return box;}
 async function renderEpisode(root){const entry=(state.episodes||[]).find(e=>e.id===episodeId);if(!entry){view='plan';render();return;}
  const panel=el('div',undefined,'panel episode'),back=el('button','← 返回详细计划','plan-link');back.onclick=()=>{view='plan';render();document.getElementById('plan-step-'+entry.step)?.scrollIntoView({block:'start'});};
  const h=el('div',undefined,'panel-title'),title=el('h2',entry.title+' ');title.append(badge(entry));h.append(title);panel.append(back,h,el('p',entry.line,'muted'));root.append(panel);
@@ -76,7 +83,9 @@ async function renderEpisode(root){const entry=(state.episodes||[]).find(e=>e.id
 function goTask(id){const i=state.stages.findIndex(s=>s.tasks.some(t=>t.id===id));if(i<0)return;index=i;view='stage';render();document.getElementById('task-'+id)?.scrollIntoView({block:'center'});}
 function bullets(items){const ul=el('ul');items.forEach(x=>ul.append(el('li',x)));return ul;}
 function renderPlan(root){const p=state.plan,panel=el('div',undefined,'panel plan'),h=el('div',undefined,'panel-title');h.append(el('h2',p.title));
- panel.append(h,el('p',p.updated,'muted'),el('h3','要回答的问题'),el('p',p.question),el('h3','固定的设定'),table(['项','内容'],p.settings));
+ panel.append(h,el('p',p.updated,'muted'),el('h3','要回答的问题'),el('p',p.question));
+ if(p.summary){panel.append(el('h3',p.summary.title));(p.summary.before||[]).forEach(x=>panel.append(el('p',x)));panel.append(cellTable(p.summary.headers,p.summary.rows));(p.summary.after||[]).forEach(x=>panel.append(el('p',x,'muted')));}
+ panel.append(el('h3','固定的设定'),table(['项','内容'],p.settings));
  if(p.pending?.length)panel.append(el('h3','待定'),bullets(p.pending));
  const tasks=new Map(state.stages.flatMap(s=>s.tasks.map(t=>[t.id,t])));
  p.steps.forEach(step=>{const card=el('section',undefined,'plan-step');card.id='plan-step-'+step.n;card.append(el('h3','第 '+step.n+' 步 · '+step.title),el('p',step.goal,'muted'));
@@ -87,6 +96,12 @@ function renderPlan(root){const p=state.plan,panel=el('div',undefined,'panel pla
   const results=episodeList(step.stage);if(results)card.append(results);panel.append(card);});
  if(p.outcome?.length)panel.append(el('h3','做完之后能说明什么'),bullets(p.outcome));root.append(panel);}
 
+// a table whose cells are text or [text, class]: ok (green), fail (red), part (amber)
+function cellTable(headers,rows){const wrap=table(headers,[]),body=wrap.querySelector('tbody');rows.forEach(row=>{const tr=el('tr');row.forEach(c=>{const td=Array.isArray(c)?el('td',String(c[0]),'cell-'+c[1]):el('td',String(c));tr.append(td);});body.append(tr);});return wrap;}
+// a page of text: sections of paragraphs, lists, tables, code and pictures
+function renderDoc(root){const d=(state.docs||[]).find(x=>x.id===docId);if(!d){view='plan';render();return;}const panel=el('div',undefined,'panel plan doc'),h=el('div',undefined,'panel-title');h.append(el('h2',d.title));panel.append(h,el('p',d.updated,'muted'));
+ d.sections.forEach(s=>{panel.append(el(s.sub?'h4':'h3',s.title));(s.text||[]).forEach(x=>panel.append(el('p',x)));if(s.bullets)panel.append(bullets(s.bullets));if(s.table)panel.append(cellTable(s.table.headers,s.table.rows));if(s.code)panel.append(el('pre',s.code));
+  (s.images||[]).forEach(([caption,data])=>{const fig=el('figure',undefined,'media'),img=el('img');img.loading='lazy';img.src='data:image/jpeg;base64,'+data;img.alt=caption;fig.append(img,el('figcaption',caption));panel.append(fig);});(s.after||[]).forEach(x=>panel.append(el('p',x,'muted')));});root.append(panel);}
 function table(headers,rows){const wrap=el('div',undefined,'table-wrap'),t=el('table'),thead=el('thead'),hr=el('tr');headers.forEach(h=>hr.append(el('th',h)));thead.append(hr);const body=el('tbody');rows.forEach(row=>{const tr=el('tr');row.forEach(value=>tr.append(el('td',String(value))));body.append(tr);});t.append(thead,body);wrap.append(t);return wrap;}
 function safeLink(label,url){const a=el('a',label);try{const u=new URL(url);if(!['https:','http:'].includes(u.protocol))return el('span',label);a.href=u.href;a.target='_blank';a.rel='noopener noreferrer';}catch{return el('span',label);}return a;}
 function renderOverview(){

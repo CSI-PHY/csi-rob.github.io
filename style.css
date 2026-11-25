@@ -30,7 +30,14 @@
 .plan-media-title{font-weight:600;font-size:14px;margin:14px 0 0}
 .badge{display:inline-block;font-size:12px;font-weight:600;padding:1px 9px;border-radius:10px;vertical-align:middle}
 .badge.ok{background:#e6f4ea;color:#1c6b3a}.badge.fail{background:#fbeaea;color:#a12b2b}
-.episode-row{border-top:1px solid var(--line);margin-top:10px;padding-top:6px}
+.episode-row{border-top:1px solid var(--line);margin-top:8px;padding-top:4px}
+.episode-row>p{margin:4px 0}
+.episodes>summary{cursor:pointer;color:var(--green);font-weight:600;font-size:14px;margin-top:12px}
+.media.lazy{display:inline-block;margin:0 0 0 8px}
+.cell-ok{color:#1c6b3a;background:#f1f8f3}.cell-fail{color:#a12b2b;background:#fcf3f3}.cell-part{color:#8a5a00;background:#fdf8ec}.cell-none{color:var(--muted)}
+.doc img{display:block;width:100%;max-width:512px;border:1px solid var(--line);border-radius:8px}
+.doc h4{margin:18px 0 4px;font-size:15px}
+.doc pre{background:#f7f9f8;border:1px solid var(--line);border-radius:8px;padding:10px 12px;white-space:pre-wrap;word-break:break-word;font:13px/1.5 ui-monospace,Menlo,monospace;margin:6px 0}
 .episode-row .plan-link{margin-top:8px}
 .episode pre,.turn-card pre{background:#f7f9f8;border:1px solid var(--line);border-radius:8px;padding:10px 12px;white-space:pre-wrap;word-break:break-word;font:13px/1.5 ui-monospace,Menlo,monospace;margin:6px 0}
 .turn-card{border:1px solid var(--line);border-radius:10px;padding:8px 18px 14px;margin:14px 0;scroll-margin-top:12px}
