@@ -177,14 +177,14 @@ async function renderGallery(root){const panel=el('div',undefined,'panel gallery
  if(!gallery){const loading=el('p','正在读取运行记录的索引…','muted');panel.append(loading);try{await loadGallery();}catch(e){loading.textContent='读取失败：'+e.message;return;}if(view!=='gallery')return;loading.remove();}
  const suite=gallery.suites.find(x=>x.id===gallerySuite)||gallery.suites[0];gallerySuite=suite.id;
  const tabs=el('div',undefined,'gallery-tabs');gallery.suites.forEach(x=>{const b=el('button',x.name+' · '+x.tasks.length+' 个任务 · '+x.count+' 局','plan-link'+(x.id===suite.id?' on':''));b.onclick=()=>{gallerySuite=x.id;galleryTask=null;render();scrollTo(0,0);};tabs.append(b);});
- panel.append(el('p','每个数据集下每个任务一张卡片；点开是这个任务跑过的每一局，标明哪个版本、哪个模型跑的，做成还是没做成。索引更新于 '+gallery.updated+'。','muted'),tabs,el('p',suite.about,'muted'));
+ panel.append(el('p','每个数据集下每个任务一张卡片；点开是这个任务最近的对局：做成的和没做成的各取最近两局（每个模型各取），标明哪个版本、哪个模型跑的。索引更新于 '+gallery.updated+'。','muted'),tabs,el('p',suite.about,'muted'));
  const task=suite.tasks.find(x=>x.id===galleryTask);
  if(!task){const cards=el('div',undefined,'cards');suite.tasks.forEach(t=>{const card=el('button',undefined,'card '+(t.solved?'ok':'fail'));if(t.image){const img=el('img');img.loading='lazy';img.src='data:image/jpeg;base64,'+t.image;img.alt=t.title;card.append(img);}
-   card.append(el('strong',t.title),el('span',t.text,'card-text'),el('span',t.count+' 局 · 做成 '+t.solved+' · 版本 '+t.versions,'card-count'));card.onclick=()=>{galleryTask=t.id;galleryFilter='all';render();scrollTo(0,0);};cards.append(card);});
+   card.append(el('strong',t.title),el('span',t.text,'card-text'),el('span','最近 '+t.count+' 局 · 做成 '+t.solved+' · 版本 '+t.versions,'card-count'));card.onclick=()=>{galleryTask=t.id;galleryFilter='all';render();scrollTo(0,0);};cards.append(card);});
   panel.append(cards,commentBox(suite.name,'对 '+suite.name+' 的留言（也会列出它下面各任务的留言）'));return;}
  const back=el('button','← 返回 '+suite.name+' 的全部任务','plan-link');back.onclick=()=>{galleryTask=null;render();scrollTo(0,0);};
  const top=el('div',undefined,'task-top');if(task.image){const img=el('img');img.src='data:image/jpeg;base64,'+task.image;img.alt=task.title;top.append(img);}
- const words=el('div');words.append(el('h3',task.title),el('p',task.text),el('p',task.count+' 局，做成 '+task.solved+' 局；版本 '+task.versions,'muted'));top.append(words);panel.append(back,top);
+ const words=el('div');words.append(el('h3',task.title),el('p',task.text),el('p','这里列出最近的 '+task.count+' 局，其中做成 '+task.solved+' 局；版本 '+task.versions,'muted'));top.append(words);panel.append(back,top);
  const groups=new Map();task.runs.forEach(r=>{const k=r.version+'｜'+r.model+'｜'+r.kind;const g=groups.get(k)||[r.version,r.model,r.kind,0,0];g[3]+=r.success?1:0;g[4]++;groups.set(k,g);});
  panel.append(el('h4','按版本'),cellTable(['版本','模型','这批对局是什么','做成 / 局数'],[...groups.values()].map(g=>[g[0],g[1],g[2],[g[3]+' / '+g[4],g[3]===g[4]?'ok':g[3]===0?'fail':'part']])));
  const filter=el('div',undefined,'gallery-tabs');[['all','全部 '+task.count],['ok','只看做成的 '+task.solved],['fail','只看没做成的 '+(task.count-task.solved)]].forEach(([k,label])=>{const b=el('button',label,'plan-link'+(galleryFilter===k?' on':''));b.onclick=()=>{galleryFilter=k;render();};filter.append(b);});
